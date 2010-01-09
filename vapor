@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+
+$:.unshift('lib')
+require 'vapor'
+
+def usage(msg)
+  puts msg
+  puts "Usage: #{$0} COMMAND CONFIG_FILE"
+  puts "  valid comands are: start"
+end
+
+command = ARGV.shift || 'unspecified'
+if command == 'unspecified'
+  usage "invalid command."
+  exit
+end
+
+config_file  = ARGV.shift || 'unspecified'
+if config_file == 'unspecified'
+  usage "invalid config."
+  exit
+end
+
+@vapor = Vapor::Base.load_config(config_file)
+@vapor.send(command.to_sym)
