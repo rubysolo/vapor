@@ -9,7 +9,7 @@ module Vapor
 
     def start(instance_count=1)
       # start new EC2 instance(s)
-      ec2.run_instances(
+      params = {
         :image_id          => image_id,
         :min_count         => instance_count,
         :max_count         => instance_count,
@@ -18,7 +18,9 @@ module Vapor
         :user_data         => user_data,
         :instance_type     => instance_type,
         :availability_zone => availability_zone
-      )
+      }
+      puts "starting instance: #{params.to_yaml}"
+      ec2.run_instances(params)
       puts "instance start requested"
     end
 

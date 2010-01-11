@@ -18,9 +18,8 @@ git clone git@github.com:rubysolo/ec2_cookbooks.git
 mkdir -p ~/.ssh
 echo "<%= key_content %>" > ~/.ssh/<%= key_name %>
 git clone <%= chef_repo_url %>
-ssh(['chef-solo -j /etc/chef/dna.json -c /etc/chef/solo.rb'])
-
-
-cookbook_path     ["/etc/chef/site-cookbooks", "/etc/chef/cookbooks"]
-role_path         "/etc/chef/roles"
+echo "cookbook_path     ['/etc/chef/site-cookbooks', '/etc/chef/cookbooks']
+role_path         '/etc/chef/roles'
 log_level         :info
+" > /etc/chef/solo.rb
+chef-solo -j /etc/chef/dna.json -c /etc/chef/solo.rb >> /tmp/user_data.log
