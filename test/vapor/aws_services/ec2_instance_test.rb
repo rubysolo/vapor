@@ -17,6 +17,7 @@ class Ec2InstanceTest < Test::Unit::TestCase
     @bootstrapped_pool = @test_cloud.pool :auto_bootstrap do
       bootstrap do
         copy_files 'config/id_rsa' => '~/.ssh/id_rsa'
+        command 'chmod 0600 /root/.ssh/id_rsa'
         git_clone 'git://github.com/mr_excitement/awesomeness.git'
         'echo "hello" >> /tmp/user_data.log'
       end
@@ -25,7 +26,8 @@ class Ec2InstanceTest < Test::Unit::TestCase
 
     user_data = @bootstrapped_instance.send(:user_data)
     assert_match %r{mkdir -p /root/.ssh}, user_data
-    assert_match /echo "hello"/, user_data
+    assert_match %r{chmod 0600 /root/.ssh/id_rsa}, user_data
+    assert_match %r{echo "hello"}, user_data
     assert_match %r{cd /tmp\ngit clone git://github.com/mr_excitement/awesomeness.git}, user_data
   end
 end

@@ -11,6 +11,8 @@ cloud :friendinterview do
                  'config/id_rsa'          => '~/.ssh/id_rsa',
                  'config/facebook.yml'    => '~/rails_config/facebook.yml',
                  'config/s3_assets.yml'   => '~/rails_config/s3_assets.yml'
+      command 'chmod 0600 /root/.ssh/*'
+      git_clone 'git://github.com/rubysolo/amazon-ec2.git'
     end
 
     # rds do
