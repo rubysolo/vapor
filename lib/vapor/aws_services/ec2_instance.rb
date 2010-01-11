@@ -15,14 +15,19 @@ module Vapor
         :max_count         => instance_count,
         :key_name          => pool.keypair.name,
         :security_group    => pool.security_group.name,
-        :user_data         => user_data,
         :instance_type     => instance_type,
         :availability_zone => availability_zone
       }
 
-      puts "starting instance: #{params.to_yaml}"
+      # does the pool want user_data bootstrapping?
+      if pool.bootstrap_mode == 'user_data'
+        params[:user_data] = user_data
+      end
+
+      puts "starting instance: #{params.to_yaml}..."
+
       ec2.run_instances(params)
-      puts "instance start requested"
+      puts "instance start requested."
     end
 
     def stop
@@ -93,10 +98,15 @@ module Vapor
 
     private
 
+    # TODO : load user data scripts from a known path?
     def user_data
       [image_id, "default"].each do |basename|
         filepath = File.join(File.dirname(__FILE__), 'user_data', "#{basename}.sh")
-        return IO.read(filepath) if File.exist?(filepath)
+        if File.exist?(filepath)
+          baseline = IO.read(filepath)
+          baseline << "\n#{pool.user_data}" unless pool.user_data.strip.empty?
+          return baseline
+        end
       end
       raise "no user data provided for image #{image_id}, and no default!"
     end
