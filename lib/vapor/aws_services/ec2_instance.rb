@@ -103,7 +103,7 @@ module Vapor
       [image_id, "default"].each do |basename|
         filepath = File.join(File.dirname(__FILE__), 'user_data', "#{basename}.sh")
         if File.exist?(filepath)
-          baseline = IO.read(filepath)
+          baseline = IO.read(filepath).strip
           baseline << "\n#{pool.user_data}" unless pool.user_data.strip.empty?
           return baseline
         end

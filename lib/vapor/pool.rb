@@ -4,11 +4,14 @@ module Vapor
   # relies on many services
   class Pool < Base
     properties :cloud, :recipe, :minimum_instances => 1, :maximum_instances => 10, :bootstrap_mode => 'manual',
-               :rds_instances => {}, :load_balancers => {}, :availability_zones => ['us-east-1a'], :user_data => ''
+               :rds_instances => {}, :load_balancers => {}, :availability_zones => ['us-east-1a'], :user_data => '',
+               :username => 'root'
 
     def after_initialize
       self.cloud = parent
       self.recipe = proper_name
+      @user_data_commands = []
+      @ensure_remote_directories = []
     end
 
     def proper_name
@@ -111,10 +114,41 @@ module Vapor
     # define a user_data script to bootstrap this instance
     def bootstrap(&block)
       self.bootstrap_mode = 'user_data'
-      self.user_data = yield if block
+      user_data_suffix = yield if block
+      self.user_data = [create_remote_directories, @user_data_commands, user_data_suffix].compact.join("\n")
     end
 
     private
+
+    # bootstrap helpers
+    def copy_files(*args)
+      args.each do |arg|
+        case arg
+        when Hash
+          arg.each do |src, dest|
+            destination = process_destination_path(dest)
+            @ensure_remote_directories << File.dirname(destination)
+            # TODO : src path
+            # TODO : mkdir dest
+            @user_data_commands << %Q{echo "#{ IO.read(src).gsub(/"/, '\"') }" >> #{ process_destination_path(dest) }}
+          end
+        end
+      end
+    end
+
+    def process_destination_path(path)
+      # user data scripts don't seem to like ~, give it a full path
+      path.gsub(/~/) {
+        username == 'root' ? '/root' : "/home/#{username}"
+      }
+    end
+
+    def create_remote_directories
+      @ensure_remote_directories.uniq.map do |rd|
+        "mkdir -p #{rd}"
+      end.join("\n")
+    end
+    # end bootstrap helpers
 
     def ec2
       AwsService.ec2

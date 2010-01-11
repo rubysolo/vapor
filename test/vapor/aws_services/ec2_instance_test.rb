@@ -16,11 +16,14 @@ class Ec2InstanceTest < Test::Unit::TestCase
   def test_user_data_bootstrapping
     @bootstrapped_pool = @test_cloud.pool :auto_bootstrap do
       bootstrap do
+        copy_files 'config/id_rsa' => '~/.ssh/id_rsa'
         'echo "hello" >> /tmp/user_data.log'
       end
     end
     @bootstrapped_instance = Ec2Instance.new(@bootstrapped_pool)
 
-    assert_match /echo "hello"/, @bootstrapped_instance.send(:user_data)
+    user_data = @bootstrapped_instance.send(:user_data)
+    assert_match %r{mkdir -p /root/.ssh}, user_data
+    assert_match /echo "hello"/, user_data
   end
 end

@@ -5,6 +5,12 @@ cloud :friendinterview do
     instances 1..10
 
     bootstrap do
+      copy_files 'config/authorized_keys' => '~/.ssh/authorized_keys',
+                 'config/known_hosts'     => '~/.ssh/known_hosts',
+                 'config/github_rsa'      => '~/.ssh/github_rsa',
+                 'config/id_rsa'          => '~/.ssh/id_rsa',
+                 'config/facebook.yml'    => '~/rails_config/facebook.yml',
+                 'config/s3_assets.yml'   => '~/rails_config/s3_assets.yml'
     end
 
     # rds do
