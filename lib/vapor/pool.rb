@@ -129,7 +129,6 @@ module Vapor
             destination = process_destination_path(dest)
             @ensure_remote_directories << File.dirname(destination)
             # TODO : src path
-            # TODO : mkdir dest
             @user_data_commands << %Q{echo "#{ IO.read(src).gsub(/"/, '\"') }" >> #{ process_destination_path(dest) }}
           end
         end
@@ -147,6 +146,23 @@ module Vapor
       @ensure_remote_directories.uniq.map do |rd|
         "mkdir -p #{rd}"
       end.join("\n")
+    end
+
+    def git_clone(*args)
+      args.each do |arg|
+        case arg
+        when String
+          @user_data_commands << %Q{cd /tmp\ngit clone #{arg}}
+        when Hash
+          arg.each do |repo_url, destdir|
+            @user_data_commands << %Q{cd #{destdir}\ngit clone #{repo_url}}
+          end
+        end
+      end
+    end
+
+    def command(cmd)
+      @user_data_commands << cmd
     end
     # end bootstrap helpers
 
