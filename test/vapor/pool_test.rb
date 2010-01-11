@@ -19,4 +19,14 @@ class PoolTest < Test::Unit::TestCase
     assert_equal 1, @test_pool.minimum_instances
     assert_equal 1, @test_pool.maximum_instances
   end
+
+  def test_automatic_bootstrapping
+    @auto_bootstrap = @test_cloud.pool :auto_bootstrap do
+      bootstrap do
+        'echo "hello" >> /tmp/user_data.log'
+      end
+    end
+
+    assert_equal 'user_data', @auto_bootstrap.bootstrap_mode
+  end
 end

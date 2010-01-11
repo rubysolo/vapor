@@ -13,6 +13,7 @@ module Vapor
     def pool(name, &block)
       @pools[name] = Pool.new(self, name)
       @pools[name].instance_eval(&block)
+      @pools[name]
     end
 
     def start

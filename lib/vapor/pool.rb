@@ -4,7 +4,7 @@ module Vapor
   # relies on many services
   class Pool < Base
     properties :cloud, :recipe, :minimum_instances => 1, :maximum_instances => 10, :bootstrap_mode => 'manual',
-               :rds_instances => {}, :load_balancers => {}, :availability_zones => ['us-east-1a']
+               :rds_instances => {}, :load_balancers => {}, :availability_zones => ['us-east-1a'], :user_data => ''
 
     def after_initialize
       self.cloud = parent
@@ -110,7 +110,8 @@ module Vapor
 
     # define a user_data script to bootstrap this instance
     def bootstrap(&block)
-
+      self.bootstrap_mode = 'user_data'
+      self.user_data = yield if block
     end
 
     private
