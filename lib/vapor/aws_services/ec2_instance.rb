@@ -19,6 +19,7 @@ module Vapor
         :instance_type     => instance_type,
         :availability_zone => availability_zone
       }
+
       puts "starting instance: #{params.to_yaml}"
       ec2.run_instances(params)
       puts "instance start requested"

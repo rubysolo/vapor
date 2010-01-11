@@ -3,7 +3,8 @@ module Vapor
   # belongs to a pool
   # relies on many services
   class Pool < Base
-    properties :cloud, :recipe, :minimum_instances => 1, :maximum_instances => 10, :rds_instances => {}, :load_balancers => {}, :availability_zones => ['us-east-1a']
+    properties :cloud, :recipe, :minimum_instances => 1, :maximum_instances => 10, :bootstrap_mode => 'manual',
+               :rds_instances => {}, :load_balancers => {}, :availability_zones => ['us-east-1a']
 
     def after_initialize
       self.cloud = parent
@@ -25,10 +26,10 @@ module Vapor
     def instances(instance_count)
       case instance_count
       when Fixnum
-        minimum_instances = maximum_instances = instance_count
+        self.minimum_instances = self.maximum_instances = instance_count
       when Range
-        minimum_instances = instance_count.first
-        maximum_instances = instance_count.last
+        self.minimum_instances = instance_count.first
+        self.maximum_instances = instance_count.last
       end
     end
 
@@ -105,6 +106,11 @@ module Vapor
         puts "[ssh] connecting to #{instance_number}..."
         running_instances[instance_number].ssh
       end
+    end
+
+    # define a user_data script to bootstrap this instance
+    def bootstrap(&block)
+
     end
 
     private

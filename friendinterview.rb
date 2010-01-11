@@ -4,6 +4,9 @@ cloud :friendinterview do
   pool :app do
     instances 1..10
 
+    bootstrap do
+    end
+
     # rds do
     #   username "root"
     #   password "passw0rd"
