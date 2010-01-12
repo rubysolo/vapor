@@ -1,7 +1,7 @@
 module Vapor
   class AwsService < Base
     property :pool, :options
-    REQUIRED_ENVIRONMENTALS = [:ec2_access_key, :ec2_secret_key]
+    REQUIRED_ENVIRONMENTALS = [:aws_access_key, :aws_secret_key]
 
     def initialize(pool, options={})
       self.pool = pool
@@ -20,15 +20,15 @@ module Vapor
       end
 
       def ec2
-        @ec2 ||= AWS::EC2::Base.new( :access_key_id => ec2_access_key, :secret_access_key => ec2_secret_key )
+        @ec2 ||= AWS::EC2::Base.new( :access_key_id => aws_access_key, :secret_access_key => aws_secret_key )
       end
 
       def rds
-        @rds ||= AWS::RDS::Base.new( :access_key_id => ec2_access_key, :secret_access_key => ec2_secret_key )
+        @rds ||= AWS::RDS::Base.new( :access_key_id => aws_access_key, :secret_access_key => aws_secret_key )
       end
 
       def elb
-        @elb ||= AWS::ELB::Base.new( :access_key_id => ec2_access_key, :secret_access_key => ec2_secret_key )
+        @elb ||= AWS::ELB::Base.new( :access_key_id => aws_access_key, :secret_access_key => aws_secret_key )
       end
 
       def verify_environment

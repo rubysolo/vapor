@@ -17,6 +17,7 @@ module Vapor
       # TODO : optional params : :port, :db_parameter_group, :db_security_groups, :availability_zone, :preferred_backup_window, :backend_retention_period
       puts " -- starting rds instance #{name}"
       rds.create_db_instance(params)
+      # TODO : wait for availability
     end
 
     def name
@@ -29,6 +30,10 @@ module Vapor
 
     def available?
       aws_status && aws_status.DBInstanceStatus == "available"
+    end
+
+    def dns_name
+      available? ? aws_status.Endpoint.Address : 'rds-pending-setup'
     end
 
     def stop
@@ -69,6 +74,15 @@ module Vapor
       #     DBParameterGroupName: default.mysql5.1
       #     ParameterApplyStatus: in-sync
       # PreferredBackupWindow: 03:00-05:00
+    end
+
+    def data
+      {
+        :host => dns_name,
+        :database => db_name,
+        :username => username,
+        :password => password
+      }
     end
 
     private

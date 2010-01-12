@@ -14,6 +14,8 @@ class Ec2InstanceTest < Test::Unit::TestCase
   end
 
   def test_user_data_bootstrapping
+    AwsService.stubs(:aws_access_key).returns('fake-access-key')
+
     @bootstrapped_pool = @test_cloud.pool :auto_bootstrap do
       bootstrap do
         copy_files 'config/id_rsa' => '~/.ssh/id_rsa'
@@ -23,11 +25,12 @@ class Ec2InstanceTest < Test::Unit::TestCase
       end
     end
     @bootstrapped_instance = Ec2Instance.new(@bootstrapped_pool)
-
     user_data = @bootstrapped_instance.send(:user_data)
+
     assert_match %r{mkdir -p /root/.ssh}, user_data
     assert_match %r{chmod 0600 /root/.ssh/id_rsa}, user_data
     assert_match %r{echo "hello"}, user_data
     assert_match %r{cd /tmp\ngit clone git://github.com/mr_excitement/awesomeness.git}, user_data
+    assert_match %r{echo "fake-access-key" > /root/.aws/access_key}, user_data
   end
 end

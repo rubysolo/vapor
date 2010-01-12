@@ -40,12 +40,14 @@ module Vapor
       rds_name = name || "#{proper_name}-rds"
       rds_instances[rds_name] = Rds.new(self, :name => rds_name)
       rds_instances[rds_name].instance_eval(&block) if block
+      rds_instances[rds_name]
     end
 
     def load_balancer(name=nil, &block)
       lb_name = name || "#{proper_name}-lb"
       load_balancers[lb_name] = ElasticLoadBalancer.new(self, :name => lb_name)
       load_balancers[lb_name].instance_eval(&block) if block
+      load_balancers[lb_name]
     end
 
     def start
@@ -116,6 +118,27 @@ module Vapor
       self.bootstrap_mode = 'user_data'
       user_data_suffix = yield if block
       self.user_data = [create_remote_directories, @user_data_commands, user_data_suffix].compact.join("\n")
+    end
+
+    def aws_data
+      aws_data = []
+
+      aws_data << %Q{echo "#{
+        rds_instances.inject({}) do |h, (name, inst)|
+          h.update(name => inst.data)
+        end.to_yaml
+      }" > /root/.aws/rds_data.yml} unless rds_instances.empty?
+
+      aws_data << %Q{echo "#{
+        load_balancers.inject({}) do |h, (name, inst)|
+          h.update(name => inst.data)
+        end.to_yaml
+      }" > /root/.aws/load_balancer.yml} unless load_balancers.empty?
+
+      # FIXME : get AWS keys...
+      aws_data << %Q{echo "#{AwsService.aws_access_key}" > /root/.aws/access_key}
+      aws_data << %Q{echo "#{AwsService.aws_secret_key}" > /root/.aws/secret_key}
+      aws_data.join("\n")
     end
 
     private
