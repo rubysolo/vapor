@@ -12,6 +12,19 @@ module Vapor
       raise "implement run in your subclass"
     end
 
+    def wait_for(message, delay=5, &block)
+      print message if message
+      finished = false
+      while ! finished
+        finished = yield
+        unless finished
+          print "." if message
+          sleep delay
+        end
+      end
+      puts if message
+    end
+
     class << self
       REQUIRED_ENVIRONMENTALS.each do |name|
         define_method name do

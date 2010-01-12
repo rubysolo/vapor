@@ -21,7 +21,10 @@ module Getset
 
   def create_property_accessors(name)
     define_method name do |*args|
-      instance_variable_set("@#{name}", self.class.defaults[name].dup) if instance_variable_get("@#{name}").nil?
+      if instance_variable_get("@#{name}").nil?
+        default_value = self.class.defaults[name].dup rescue self.class.defaults[name]
+        instance_variable_set("@#{name}", default_value)
+      end
       instance_variable_set("@#{name}", args.first) unless args.empty?
       instance_variable_get("@#{name}")
     end

@@ -3,21 +3,30 @@ module Vapor
     properties :username, :password, :db_name, :storage => 5, :instance_class => 'db.m1.small', :engine => 'MySQL5.1'
 
     def start
-      # set up a new rds instance
-      params = {
-        :db_instance_identifier => name,
-        :allocated_storage      => storage,
-        :db_instance_class      => instance_class,
-        :engine                 => engine,
-        :master_username        => username,
-        :master_user_password   => password,
-        :db_name                => db_name || to_db_name(pool.proper_name)
-      }
+      if aws_status
+        puts " -- rds instance #{name} already exists."
+      else
+        # set up a new rds instance
+        params = {
+          :db_instance_identifier => name,
+          :allocated_storage      => storage,
+          :db_instance_class      => instance_class,
+          :engine                 => engine,
+          :master_username        => username,
+          :master_user_password   => password,
+          :db_name                => db_name || to_db_name(pool.proper_name)
+        }
 
-      # TODO : optional params : :port, :db_parameter_group, :db_security_groups, :availability_zone, :preferred_backup_window, :backend_retention_period
-      puts " -- starting rds instance #{name}"
-      rds.create_db_instance(params)
-      # TODO : wait for availability
+        # TODO : optional params : :port, :db_parameter_group, :db_security_groups, :availability_zone, :preferred_backup_window, :backend_retention_period
+        puts " -- starting rds instance #{name}..."
+        rds.create_db_instance(params)
+      end
+
+      wait_for " -- waiting rds instance #{name} availability..." do
+        available?
+      end
+
+      puts " -- rds instance #{name} online at #{dns_name}."
     end
 
     def name
