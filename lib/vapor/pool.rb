@@ -135,7 +135,6 @@ module Vapor
         end.to_yaml
       }" > /root/.aws/load_balancer.yml} unless load_balancers.empty?
 
-      # FIXME : get AWS keys...
       aws_data << %Q{echo "#{AwsService.aws_access_key}" > /root/.aws/access_key}
       aws_data << %Q{echo "#{AwsService.aws_secret_key}" > /root/.aws/secret_key}
       aws_data.join("\n")
@@ -178,14 +177,21 @@ module Vapor
           @user_data_commands << %Q{cd /tmp\ngit clone #{arg}}
         when Hash
           arg.each do |repo_url, destdir|
-            @user_data_commands << %Q{cd #{destdir}\ngit clone #{repo_url}}
+            @user_data_commands << %Q{cd #{process_destination_path destdir}\ngit clone #{repo_url}}
           end
         end
       end
     end
 
     def command(cmd)
-      @user_data_commands << cmd
+      case cmd
+      when String
+        @user_data_commands << cmd
+      when Hash
+        cmd.each do |c, destdir|
+          @user_data_commands << %Q{cd #{process_destination_path destdir}\n#{c}}
+        end
+      end
     end
     # end bootstrap helpers
 
