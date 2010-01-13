@@ -14,6 +14,7 @@ class Ec2InstanceTest < Test::Unit::TestCase
   end
 
   def test_user_data_bootstrapping
+    # IO.stubs(:read).with('config/id_rsa').returns('fake-ssh-key')
     AwsService.stubs(:aws_access_key).returns('fake-access-key')
 
     @bootstrapped_pool = @test_cloud.pool :auto_bootstrap do

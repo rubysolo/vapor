@@ -140,6 +140,16 @@ module Vapor
       aws_data.join("\n")
     end
 
+    def running_instances
+      ec2_instances(:running)
+    end
+
+    def ec2_instances(status_filter=:all)
+      current_status.select do |instance|
+        status_filter == :all || instance.status == status_filter.to_s
+      end
+    end
+
     private
 
     # bootstrap helpers
@@ -199,21 +209,13 @@ module Vapor
       AwsService.ec2
     end
 
-    def running_instances
-      ec2_instances(:running)
-    end
-
-    def ec2_instances(status_filter=:all)
-      current_status.select do |instance|
-        status_filter == :all || instance.status == status_filter.to_s
-      end
-    end
-
     def current_status(reload=false)
       reset_cache if reload
       @current_status ||= begin
         (ec2.describe_instances.reservationSet || []).map do |r|
-          r.last.map do |i|
+          r.last.select do |i|
+            i.groupSet.item.map{|g| g.groupId }.include? proper_name
+          end.map do |i|
             i.instancesSet.item.map do |ii|
               Ec2Instance.new(self, :ec2_status => ii)
             end

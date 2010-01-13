@@ -31,16 +31,21 @@ class PoolTest < Test::Unit::TestCase
   end
 
   def test_pools_are_independent
-    @big_pool = @test_cloud.pool :big_app do
-      rds
-    end
-
-    @small_pool = @test_cloud.pool :small_app do
-      rds
-    end
+    @big_pool   = @test_cloud.pool(:big_app)   { rds }
+    @small_pool = @test_cloud.pool(:small_app) { rds }
 
     assert @test_pool.rds_instances.empty?, @test_pool.rds_instances.keys.join(', ')
     assert_equal ['test_cloud-big_app-rds'], @big_pool.rds_instances.keys
     assert_equal ['test_cloud-small_app-rds'], @small_pool.rds_instances.keys
+  end
+
+  def test_pool_ec2_data_scoped_by_security_group
+    AWS::EC2::Base.any_instance.stubs(:describe_instances).returns(
+      AWS::Response.parse(:xml => open(File.join(FIXTURES_PATH, "ec2_describe_instances.xml")).read)
+    )
+
+    pool_instances = @test_pool.ec2_instances.map{|i| i.instance_id }
+    assert pool_instances.include?('i-7fd89416'), 'pool should have instance i-7fd89416'
+    assert ! pool_instances.include?('i-7f000516'), 'pool should not have instance i-7f000516'
   end
 end
